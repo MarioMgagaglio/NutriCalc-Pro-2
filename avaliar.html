@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriCalc Pro - Mario Magaglio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50; --primary-dark: #1a252f;
+            --secondary-color: #27ae60;
+            --bg-color: #f4f7f6; --surface-color: #ffffff;
+            --text-primary: #2c3e50; --text-secondary: #7f8c8d;
+            --border-color: #e0e6ed;
+            --shadow: 0 4px 6px rgba(0,0,0,0.05);
+            --border-radius: 10px;
+        }
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg-color); color: var(--text-primary); margin: 0; padding: 20px; }
+        .app-container { max-width: 900px; margin: 20px auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { font-family: 'Poppins', sans-serif; font-size: 32px; margin: 0; }
+        .header p { color: var(--text-secondary); margin: 5px 0 0 0; }
+        
+        .card { background-color: var(--surface-color); padding: 25px 30px; border-radius: var(--border-radius); box-shadow: var(--shadow); }
+        .tab-nav { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 25px; }
+        .tab-button { background: none; border: none; padding: 15px 20px; font-size: 16px; font-family: 'Poppins', sans-serif; font-weight: 500; cursor: pointer; color: var(--text-secondary); position: relative; }
+        .tab-button.active { color: var(--primary-color); border-bottom: 3px solid var(--primary-color); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s ease; }
+        h2 { font-family: 'Poppins', sans-serif; font-size: 22px; color: var(--primary-dark); border-bottom: 1px solid var(--border-color); padding-bottom:10px; margin-bottom:20px;}
+
+        /* Estilos do Guia de Patologias */
+        .search-container { position: relative; margin-bottom: 20px; }
+        #search-input { width: 100%; padding: 12px 15px 12px 45px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 16px; }
+        .search-container::before { content: '⚲'; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 20px; color: var(--text-secondary); }
+        #pathology-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        .pathology-card { display: flex; justify-content: space-between; align-items: center; background-color: var(--light-gray); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; cursor: pointer; transition: all 0.2s ease; }
+        .pathology-card:hover { border-color: var(--primary-color); transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.07); }
+        .pathology-card-info h3 { font-family: 'Poppins', sans-serif; margin: 0 0 3px 0; font-size: 16px; }
+        .pathology-card-info span { font-size: 13px; color: var(--text-secondary); }
+        .fav-button { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-secondary); transition: color 0.2s, transform 0.2s; }
+        .fav-button:hover { transform: scale(1.2); }
+        .fav-button.favorited { color: #f1c40f; }
+
+        .detail-header { display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px; }
+        .back-button { background: var(--medium-gray); color: var(--text-secondary); border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 24px; line-height: 40px; text-align: center; cursor: pointer; transition: all 0.2s ease; }
+        .back-button:hover { background: var(--dark-gray); color: var(--white); }
+        .detail-header h2 { font-size: 26px; margin: 0; padding: 0; border: none; }
+        
+        .detail-section { margin-bottom: 25px; }
+        .detail-section h4 { font-family: 'Poppins', sans-serif; font-size: 18px; color: var(--primary-color); margin: 0 0 10px 0; }
+        .detail-section p, .detail-section li { line-height: 1.7; }
+        .detail-section ul { padding-left: 20px; margin: 0; }
+        .therapy-item { background:var(--medium-gray); padding:10px; border-radius:4px; }
+        .therapy-item strong { display: block; }
+        
+        /* Estilos Genéricos para TNE e Exames */
+        .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 14px; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; }
+        .action-button { width:100%; padding: 12px; margin-top:20px; background:var(--secondary-color); color:white; border:none; border-radius:8px; cursor:pointer; font-size: 16px; font-weight: 700; transition: background-color 0.2s; }
+        .action-button:hover { background: var(--primary-dark); }
+        .result-box { margin-top: 20px; background: var(--light-gray); padding: 20px; border-radius: 8px; }
+        .result-box h4 { margin-top: 0; font-family: 'Poppins'; color: var(--primary-dark); }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <h1>NutriCalc Pro</h1>
+            <p>Sua Suíte Clínica por Mario Magaglio</p>
+        </header>
+
+        <div class="card">
+            <div class="tab-nav">
+                <button class="tab-button" onclick="mostrarAba('guia')">Guia de Patologias</button>
+                <button class="tab-button" onclick="mostrarAba('tne')">Cálculo de TNE</button>
+                <button class="tab-button" onclick="mostrarAba('exames')">Interpretador de Exames</button>
+            </div>
+
+            <div id="guia-content" class="tab-content">
+                <div id="guia-main-view">
+                    <div class="search-container"> <input type="text" id="search-input" placeholder="Buscar patologia..."> </div>
+                    <div id="pathology-list"></div>
+                </div>
+                <div id="pathology-detail" style="display:none;"></div>
+            </div>
+
+            <div id="tne-content" class="tab-content">
+                <h2>Calculadora de Terapia Nutricional Enteral</h2>
+                <div class="input-grid">
+                    <div class="input-group"><label for="tne-peso">Peso do Paciente (kg)</label><input type="number" id="tne-peso" placeholder="70"></div>
+                    <div class="input-group"><label for="tne-meta-kcal">Meta Calórica (kcal)</label><input type="number" id="tne-meta-kcal" placeholder="1800"></div>
+                    <div class="input-group"><label for="tne-densidade">Densidade da Dieta (kcal/mL)</label>
+                        <select id="tne-densidade"><option value="1.0">1.0</option><option value="1.2">1.2</option><option value="1.5">1.5</option><option value="2.0">2.0</option></select>
+                    </div>
+                    <div class="input-group"><label for="tne-proteina">Proteína da Dieta (g/L)</label><input type="number" id="tne-proteina" placeholder="40"></div>
+                </div>
+                <button onclick="calcularTNE()" class="action-button">Calcular TNE</button>
+                <div id="tne-resultado" class="result-box" style="display:none;"></div>
+            </div>
+
+            <div id="exames-content" class="tab-content">
+                <h2>Interpretador de Exames Bioquímicos</h2>
+                <div class="input-grid">
+                    <div class="input-group"><label for="exame-select">Selecione o Exame</label><select id="exame-select"><option value="">-- Escolha --</option></select></div>
+                    <div class="input-group"><label for="exame-valor">Valor do Resultado</label><input type="number" id="exame-valor" placeholder="Insira o valor"></div>
+                </div>
+                <button onclick="interpretarExame()" class="action-button">Analisar Exame</button>
+                <div id="exame-resultado" class="result-box" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // --- BANCO DE DADOS CENTRALIZADO ---
+    const database = {
+        patologias: [
+            { id: 'drc', nome: 'Doença Renal Crônica (DRC)', categoria: 'Renal', favorito: false, detalhes: {
+                visaoGeral: 'É a perda progressiva e irreversível da função renal. A terapia nutricional é um pilar do tratamento, visando retardar a progressão da doença, prevenir a desnutrição e minimizar distúrbios metabólicos.',
+                causas: 'As causas mais comuns são <strong>Diabetes Mellitus</strong> e <strong>Hipertensão Arterial Sistêmica</strong>. Outras causas incluem doenças glomerulares, infecções renais de repetição, obstruções do trato urinário e fatores genéticos.',
+                avaliacao: { bioquimica: 'Monitorar Ureia, Creatinina, Taxa de Filtração Glomerular (TFG), <strong>Potássio (K)</strong>, <strong>Fósforo (P)</strong>, Albumina e PTH.' },
+                terapia: [ { item: 'Proteína (não-dialítico)', valor: '0.6-0.8 g/kg/dia' }, { item: 'Proteína (em diálise)', valor: '1.2-1.5 g/kg/dia' }, { item: 'Sódio', valor: '2-3 g/dia' } ],
+                recomendacoes: { evitar: '<strong>Carambola (neurotóxica!)</strong>, alimentos processados ricos em sódio e fósforo (embutidos, refrigerantes à base de cola, enlatados), sal de adição.', dicas: 'Utilizar a técnica de <strong>dupla fervura</strong> para reduzir o potássio de vegetais.' }
+            }},
+            { id: 'dm2', nome: 'Diabetes Mellitus Tipo 2', categoria: 'Endócrina', favorito: false, detalhes: {
+                visaoGeral: 'Doença metabólica caracterizada por hiperglicemia crônica, resultante de defeitos na secreção ou na ação da insulina.',
+                causas: 'Forte componente <strong>genético</strong> associado a fatores de risco como <strong>obesidade</strong>, <strong>sedentarismo</strong> e dieta inadequada.',
+                avaliacao: { bioquimica: 'Glicemia de jejum, <strong>Hemoglobina Glicada (HbA1c)</strong>, Perfil Lipídico.'},
+                terapia: [ { item: 'Carboidratos', valor: '45-60% VET, priorizando baixo índice glicêmico e fibras.' }, { item: 'Proteínas', valor: '15-20% VET' }],
+                recomendacoes: { evitar: 'Açúcares simples (doces, refrigerantes, sucos), farinhas refinadas.', dicas: 'A <strong>Contagem de Carboidratos</strong> é uma estratégia eficaz para o controle glicêmico.' }
+            }},
+            { id: 'disfagia', nome: 'Disfagia Orofaríngea', categoria: 'Condições Especiais', favorito: false, detalhes: {
+                visaoGeral: 'Dificuldade de engolir alimentos ou líquidos, um sintoma comum em diversas condições. A terapia foca em modificar a <strong>consistência dos alimentos</strong> para garantir uma deglutição segura.',
+                causas: '<strong>Acidente Vascular Cerebral (AVC)</strong> é a causa mais comum. Outras incluem doenças neurodegenerativas (Parkinson, Alzheimer) e câncer de cabeça e pescoço.',
+                avaliacao: { bioquimica: 'Avaliar marcadores de hidratação e estado nutricional geral.'},
+                terapia: [ { item: 'Consistência (Líquidos)', valor: 'Uso de espessantes para atingir consistências como Néctar, Mel ou Pudim (Padrão IDDSI).' }, { item: 'Consistência (Sólidos)', valor: 'Dieta adaptada para Purê, Moído e Úmido ou Pedaços Macios (Padrão IDDSI).' }],
+                recomendacoes: { evitar: 'Alimentos com <strong>dupla consistência</strong> (sopa com pedaços), secos, farelentos ou pegajosos.', dicas: 'Trabalhar em conjunto com a equipe de Fonoaudiologia é fundamental.' }
+            }}
+        ],
+        exames: {
+            'albumina': { nome: 'Albumina Sérica', unidade: 'g/dL', ref: '3.5 - 5.2', logica: (v) => { if (v < 3.5) return 'Baixo'; if (v <= 5.2) return 'Normal'; return 'Alto'; } },
+            'glicemia': { nome: 'Glicemia de Jejum', unidade: 'mg/dL', ref: '70 - 99', logica: (v) => { if (v < 70) return 'Baixo (Hipoglicemia)'; if (v <= 99) return 'Normal'; if (v <= 125) return 'Elevada (Pré-Diabetes)'; return 'Alta (Diabetes)'; } },
+            'hba1c': { nome: 'Hemoglobina Glicada', unidade: '%', ref: '< 5.7%', logica: (v) => { if (v < 5.7) return 'Normal'; if (v < 6.5) return 'Elevada (Pré-Diabetes)'; return 'Alta (Diabetes)'; } },
+            'ureia': { nome: 'Ureia', unidade: 'mg/dL', ref: '15 - 45', logica: (v) => { if (v < 15) return 'Baixo'; if (v <= 45) return 'Normal'; return 'Alto'; } },
+            'creatinina': { nome: 'Creatinina', unidade: 'mg/dL', ref: '0.6 - 1.3', logica: (v) => { if (v < 0.6) return 'Baixo'; if (v <= 1.3) return 'Normal'; return 'Alto'; } },
+            'potassio': { nome: 'Potássio (K)', unidade: 'mEq/L', ref: '3.5 - 5.1', logica: (v) => { if (v < 3.5) return 'Baixo (Hipocalemia)'; if (v <= 5.1) return 'Normal'; return 'Alto (Hipercalemia)'; } },
+            'sodio': { nome: 'Sódio (Na)', unidade: 'mEq/L', ref: '135 - 145', logica: (v) => { if (v < 135) return 'Baixo (Hiponatremia)'; if (v <= 145) return 'Normal'; return 'Alto (Hipernatremia)'; } }
+        }
+    };
+    
+    // --- LÓGICA DO APP (ENGINE) ---
+    function mostrarAba(nomeAba) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+        document.getElementById(nomeAba + '-content').classList.add('active');
+        document.querySelector(`.tab-button[onclick="mostrarAba('${nomeAba}')"]`).classList.add('active');
+    }
+
+    // --- Lógica do Guia de Patologias ---
+    const guiaContainer = document.getElementById('guia-content');
+    const searchInput = document.getElementById('search-input');
+
+    function carregarFavoritos() {
+        const favoritosIds = JSON.parse(localStorage.getItem('nutricalc_favoritos')) || [];
+        database.patologias.forEach(p => { p.favorito = favoritosIds.includes(p.id); });
+    }
+
+    function salvarFavoritos() {
+        const favoritosIds = database.patologias.filter(p => p.favorito).map(p => p.id);
+        localStorage.setItem('nutricalc_favoritos', JSON.stringify(favoritosIds));
+    }
+
+    function toggleFavorito(id, event) {
+        event.stopPropagation();
+        const patologia = database.patologias.find(p => p.id === id);
+        if (patologia) { patologia.favorito = !patologia.favorito; }
+        salvarFavoritos();
+        handleSearch({ target: { value: searchInput.value } }); // Atualiza a lista respeitando a busca atual
+    }
+
+    function renderizarMenuPrincipal(patologias = database.patologias) {
+        const pathologyList = document.getElementById('pathology-list');
+        pathologyList.innerHTML = '';
+        const patologiasOrdenadas = [...patologias].sort((a, b) => (b.favorito - a.favorito) || a.nome.localeCompare(b.nome));
+
+        if (patologiasOrdenadas.length === 0) {
+            pathologyList.innerHTML = '<p class="placeholder-text">Nenhuma patologia encontrada.</p>';
+            return;
+        }
+
+        patologiasOrdenadas.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'pathology-card';
+            card.onclick = () => mostrarDetalhes(p.id);
+            card.innerHTML = `<div class="pathology-card-info"><h3>${p.nome}</h3><span>${p.categoria}</span></div><button class="fav-button ${p.favorito ? 'favorited' : ''}" onclick="toggleFavorito('${p.id}', event)">⭐</button>`;
+            pathologyList.appendChild(card);
+        });
+    }
+
+    function mostrarDetalhes(id) {
+        document.getElementById('guia-main-view').style.display = 'none';
+        const detailView = document.getElementById('pathology-detail');
+        detailView.style.display = 'block';
+        const p = database.patologias.find(item => item.id === id);
+        const dados = p.detalhes;
+        detailView.innerHTML = `
+            <div class="detail-header"><button class="back-button" onclick="voltarParaMenu()">←</button><h2>${p.nome}</h2></div>
+            <div class="detail-section"><h4>Visão Geral</h4><p>${dados.visaoGeral}</p></div>
+            <div class="detail-section"><h4>Causas e Fatores de Risco</h4><p>${dados.causas}</p></div>
+            <div class="detail-section"><h4>Avaliação Nutricional Chave</h4><ul><li><strong>Bioquímica:</strong> ${dados.avaliacao.bioquimica}</li></ul></div>
+            <div class="detail-section"><h4>Terapia Nutricional</h4><div class="input-grid">${dados.terapia.map(item => `<div class="therapy-item"><strong>${item.item}</strong><br><span>${item.valor}</span></div>`).join('')}</div></div>
+            <div class="detail-section"><h4>Recomendações Práticas</h4><ul><li><strong>Evitar/Moderar:</strong> ${dados.recomendacoes.evitar}</li><li><strong>Dicas Clínicas:</strong> ${dados.recomendacoes.dicas}</li></ul></div>`;
+    }
+
+    function voltarParaMenu() {
+        document.getElementById('guia-main-view').style.display = 'block';
+        document.getElementById('pathology-detail').style.display = 'none';
+        searchInput.value = '';
+        renderizarMenuPrincipal();
+    }
+
+    function handleSearch(e) {
+        const termo = e.target.value.toLowerCase();
+        const patologiasFiltradas = database.patologias.filter(p => p.nome.toLowerCase().includes(termo) || p.categoria.toLowerCase().includes(termo));
+        renderizarMenuPrincipal(patologiasFiltradas);
+    }
+    
+    // --- Lógica da Aba: TNE ---
+    function calcularTNE() {
+        const resultadoDiv = document.getElementById('tne-resultado');
+        try {
+            const peso = parseFloat(document.getElementById('tne-peso').value);
+            const meta = parseFloat(document.getElementById('tne-meta-kcal').value);
+            const densidade = parseFloat(document.getElementById('tne-densidade').value);
+            const proteinaDieta = parseFloat(document.getElementById('tne-proteina').value);
+            if ([peso, meta, densidade, proteinaDieta].some(isNaN)) throw new Error("Preencha todos os campos da TNE.");
+
+            const volumeTotal = meta / densidade;
+            const proteinaTotal = (volumeTotal / 1000) * proteinaDieta;
+            resultadoDiv.style.display = 'block';
+            resultadoDiv.innerHTML = `
+                <h4>Plano de TNE Sugerido</h4>
+                <p><strong>Volume Total Diário:</strong> ${volumeTotal.toFixed(0)} mL</p>
+                <p><strong>Oferta Proteica Estimada:</strong> ${proteinaTotal.toFixed(1)} g</p>
+                <p><strong>Velocidade de Infusão (24h):</strong> ${(volumeTotal / 24).toFixed(1)} mL/hora</p>`;
+        } catch (e) {
+            resultadoDiv.style.display = 'block';
+            resultadoDiv.innerHTML = `<p style="color:red;">${e.message}</p>`;
+        }
+    }
+
+    // --- Lógica da Aba: Exames ---
+    function popularExamesDropdown() {
+        const select = document.getElementById('exame-select');
+        for (const key in database.exames) {
+            const exame = database.exames[key];
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = exame.nome;
+            select.appendChild(option);
+        }
+    }
+
+    function interpretarExame() {
+        const resultadoDiv = document.getElementById('exame-resultado');
+        try {
+            const exameId = document.getElementById('exame-select').value;
+            const valor = parseFloat(document.getElementById('exame-valor').value);
+            if (!exameId) throw new Error("Selecione um exame.");
+            if (isNaN(valor)) throw new Error("Insira um valor numérico.");
+
+            const exame = database.exames[exameId];
+            const interpretacao = exame.logica(valor);
+            
+            resultadoDiv.style.display = 'block';
+            resultadoDiv.innerHTML = `
+                <h4>Interpretação: ${exame.nome}</h4>
+                <p><strong>Valor Informado:</strong> ${valor} ${exame.unidade}</p>
+                <p><strong>Referência:</strong> ${exame.ref}</p>
+                <p><strong>Resultado:</strong> <span style="font-weight:bold;">${interpretacao}</span></p>`;
+        } catch (e) {
+            resultadoDiv.style.display = 'block';
+            resultadoDiv.innerHTML = `<p style="color:red;">${e.message}</p>`;
+        }
+    }
+    
+    // --- INICIALIZAÇÃO DO APP ---
+    document.addEventListener('DOMContentLoaded', () => {
+        carregarFavoritos();
+        popularExamesDropdown();
+        renderizarMenuPrincipal();
+        mostrarAba('guia');
+        searchInput.addEventListener('keyup', handleSearch);
+    });
+    </script>
+</body>
+</html>
